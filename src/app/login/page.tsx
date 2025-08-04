@@ -1,38 +1,59 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { 
-  MessageSquare, 
-  Mail, 
-  Lock, 
-  Eye, 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client"; // ✅ Our BetterAuth client
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  MessageSquare,
+  Mail,
+  Lock,
+  Eye,
   EyeOff,
   ArrowLeft,
-  Sparkles
-} from "lucide-react"
-import Link from "next/link"
+} from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleGoogleLogin = () => {
-    console.log("Google login clicked")
-    // TODO: Implement Google OAuth
-  }
+  // Google login
+  const handleGoogleLogin = async () => {
+    const result = await authClient.signIn.social({ provider: "google" });
+    if (!result.error) {
+      // Wait a moment for the session to be established
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
+    } else {
+      alert(result.error.message);
+    }
+  };
 
-  const handleEmailLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Email login:", { email, password })
-    // TODO: Implement email login
-  }
+  // Email/password login
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const result = await authClient.signIn.email({
+      email,
+      password,
+    });
+    if (!result.error) {
+      // Wait a moment for the session to be established
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
+    } else {
+      alert(result.error.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
@@ -45,10 +66,15 @@ export default function LoginPage() {
             </div>
             <h1 className="text-2xl font-bold text-white">chatbox</h1>
           </div>
-          <h2 className="text-3xl font-bold text-white mb-2">Login to ChatBox</h2>
+          <h2 className="text-3xl font-bold text-white mb-2">
+            Login to ChatBox
+          </h2>
           <p className="text-gray-400">
             Or{" "}
-            <Link href="/signup" className="text-blue-400 hover:text-blue-300 transition-colors">
+            <Link
+              href="/signup"
+              className="text-blue-400 hover:text-blue-300 transition-colors"
+            >
               create a new account
             </Link>
           </p>
@@ -75,14 +101,19 @@ export default function LoginPage() {
             <div className="relative mb-6">
               <Separator className="bg-gray-600" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Badge className="bg-gray-800 text-gray-400 border-gray-600">OR</Badge>
+                <Badge className="bg-gray-800 text-gray-400 border-gray-600">
+                  OR
+                </Badge>
               </div>
             </div>
 
             {/* Email/Password Form */}
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white text-sm font-medium">
+                <Label
+                  htmlFor="email"
+                  className="text-white text-sm font-medium"
+                >
                   Email
                 </Label>
                 <div className="relative">
@@ -101,11 +132,14 @@ export default function LoginPage() {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-white text-sm font-medium">
+                  <Label
+                    htmlFor="password"
+                    className="text-white text-sm font-medium"
+                  >
                     Password
                   </Label>
-                  <Link 
-                    href="/forgot-password" 
+                  <Link
+                    href="/forgot-password"
                     className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
                   >
                     Forgot your password?
@@ -127,7 +161,11 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -144,8 +182,8 @@ export default function LoginPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="inline-flex items-center text-gray-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -154,5 +192,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}
