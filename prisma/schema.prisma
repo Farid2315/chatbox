@@ -32,7 +32,7 @@ model AppUser {
   updatedAt      DateTime       @updatedAt
 
   // Link to User (BetterAuth)
-  authUserId String?   @db.ObjectId
+  authUserId String?
   authUser   User?     @relation(fields: [authUserId], references: [id])
 }
 
