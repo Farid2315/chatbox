@@ -28,26 +28,40 @@ export default function LoginPage() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
 
   // Google login
+  // const handleGoogleLogin = async () => {
+  //   setIsGoogleLoading(true);
+  //   try {
+  //     const result = await authClient.signIn.social({ provider: "google" });
+  //     if (!result.error) {
+  //       // Wait a moment for the session to be established
+  //       setTimeout(() => {
+  //         router.push("/dashboard");
+  //       }, 1000);
+  //     } else {
+  //       alert(result.error.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("Google login error:", error);
+  //     alert("Failed to login with Google. Please try again.");
+  //   } finally {
+  //     setIsGoogleLoading(false);
+  //   }
+  // };
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-      const result = await authClient.signIn.social({ provider: "google" });
-      if (!result.error) {
-        // Wait a moment for the session to be established
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1000);
-      } else {
-        alert(result.error.message);
-      }
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard", // ✅ Ensure redirect happens correctly
+      });
+      // No code below this line will execute, as the browser will redirect away
     } catch (error) {
       console.error("Google login error:", error);
       alert("Failed to login with Google. Please try again.");
-    } finally {
-      setIsGoogleLoading(false);
+      setIsGoogleLoading(false); // ✅ Only needed on failure
     }
   };
-
+  
   // Email/password login
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();

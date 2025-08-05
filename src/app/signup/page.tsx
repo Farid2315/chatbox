@@ -39,27 +39,42 @@ export default function SignupPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
 
+  // const handleGoogleSignup = async () => {
+  //   setIsGoogleLoading(true);
+  //   try {
+  //     const result = await authClient.signIn.social({
+  //       provider: "google",
+  //     });
+  //     if (!result.error) {
+  //       // Wait a moment for the session to be established
+  //       setTimeout(() => {
+  //         router.push("/dashboard");
+  //       }, 1000);
+  //     } else {
+  //       alert(result.error.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("Google signup error:", error);
+  //     alert("Failed to sign up with Google. Please try again.");
+  //   } finally {
+  //     setIsGoogleLoading(false);
+  //   }
+  // };
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     try {
-      const result = await authClient.signIn.social({
+      await authClient.signIn.social({
         provider: "google",
+        callbackURL: "/dashboard", // ✅ Redirects after successful signup
       });
-      if (!result.error) {
-        // Wait a moment for the session to be established
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1000);
-      } else {
-        alert(result.error.message);
-      }
+      // No code below this line will run due to redirect
     } catch (error) {
       console.error("Google signup error:", error);
       alert("Failed to sign up with Google. Please try again.");
-    } finally {
       setIsGoogleLoading(false);
     }
   };
+  
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();

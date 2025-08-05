@@ -106,10 +106,10 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section */}
         <div className="text-center mb-16 sm:mb-20">
-          <Badge className="mb-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700 hover:from-blue-200 hover:to-purple-200 dark:hover:from-blue-800/30 dark:hover:to-purple-800/30">
+          {/* <Badge className="mb-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700 hover:from-blue-200 hover:to-purple-200 dark:hover:from-blue-800/30 dark:hover:to-purple-800/30">
             <Sparkles className="w-4 h-4 mr-2" />
             Now with AI-powered features
-          </Badge>
+          </Badge> */}
           
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
             Welcome to{" "}
@@ -196,7 +196,7 @@ export default function Home() {
                       <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 italic">"{testimonial.content}"</p>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4 italic">&quot;{testimonial.content}&quot;</p>
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">{testimonial.role}</div>
