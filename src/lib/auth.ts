@@ -1,6 +1,7 @@
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { betterAuth } from "better-auth";
 import { PrismaClient } from "@prisma/client";
+import { openAPI } from "better-auth/plugins"
 
 const prisma = new PrismaClient();
 
@@ -32,25 +33,9 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "https://your-production-domain.com",
   ],
+  plugins: [ 
+    openAPI(), 
+] 
 
-  // Custom hooks to handle user creation
-  hooks: {
-    async onUserCreate(user) {
-      try {
-        // Create a corresponding AppUser record with default role
-        await prisma.appUser.create({
-          data: {
-            email: user.email!,
-            name: user.name || "Unknown User",
-            role: "AGENT", // Default role for new users
-            authUserId: user.id,
-          },
-        });
-      } catch (error) {
-        console.error("Error creating AppUser record:", error);
-        // Don't throw error to prevent auth failure
-      }
-      return user;
-    },
-  },
+
 });
