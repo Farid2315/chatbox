@@ -83,7 +83,7 @@ export default function DashboardPage() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.name || user?.email}!</h1>
         <p className="text-muted-foreground">
-          Here's what's happening with your conversations today.
+          Here&apos;s what&apos;s happening with your conversations today.
         </p>
       </div>
 
@@ -203,6 +203,7 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+    
     </div>
   );
 } 

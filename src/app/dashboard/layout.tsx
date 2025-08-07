@@ -250,6 +250,7 @@ export default async function Layout({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      
     </div>
   );
 } 

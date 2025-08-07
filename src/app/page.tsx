@@ -264,6 +264,12 @@ export default function Home() {
           `
         }}
       /> */}
+      <script
+        src="http://localhost:3000/widget.js"
+        data-base="http://localhost:3000"
+        data-room="64f845a7b982e12a0e379f55"
+        async
+      />
 
     </div>
   )
