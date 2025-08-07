@@ -31,9 +31,10 @@ model AppUser {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  // Link to User (BetterAuth)
   authUserId String?
   authUser   User?     @relation(fields: [authUserId], references: [id])
+
+  webhooks   Webhook[]
 }
 
 model Customer {
@@ -57,6 +58,7 @@ model Conversation {
   assignedTo     AppUser?   @relation("UserConversations", fields: [assignedToId], references: [id])
   status         ConversationStatus @default(OPEN)
   messages       Message[]
+  typingEvents   TypingEvent[]
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 }
@@ -68,7 +70,31 @@ model Message {
   senderType     SenderType
   senderId       String?    @db.ObjectId
   content        String
+  seenAt         DateTime?  // Optional for "seen" status
   createdAt      DateTime   @default(now())
+}
+
+/* ---------- Real-Time Additions ---------- */
+model TypingEvent {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String     @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       String     @db.ObjectId
+  isTyping       Boolean
+  updatedAt      DateTime   @default(now())
+}
+
+model Webhook {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  url       String
+  event     String   // e.g., "new_message", "conversation_closed"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appUserId String   @db.ObjectId
+  appUser   AppUser @relation(fields: [appUserId], references: [id])
+
+  @@index([appUserId])
 }
 
 /* ---------- BetterAuth Models ---------- */
@@ -91,8 +117,7 @@ model User {
   isAnonymous   Boolean?
   username      String?
   displayUsername String?
-  
-  // Relations
+
   accounts      Account[]
   sessions      Session[]
   appUsers      AppUser[]
@@ -170,3 +195,176 @@ enum SenderType {
   CUSTOMER
   SYSTEM
 }
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "mongodb"
+//   url      = env("DATABASE_URL")
+// }
+
+// /* ---------- SaaS Core ---------- */
+// model Organization {
+//   id             String         @id @default(auto()) @map("_id") @db.ObjectId
+//   name           String
+//   users          AppUser[]      @relation(fields: [], references: [])
+//   customers      Customer[]
+//   conversations  Conversation[]
+//   createdAt      DateTime       @default(now())
+//   updatedAt      DateTime       @updatedAt
+// }
+
+// model AppUser {
+//   id             String         @id @default(auto()) @map("_id") @db.ObjectId
+//   email          String         @unique
+//   name           String
+//   passwordHash   String?
+//   role           UserRole?      // Make role optional
+//   theme          String?        @default("system") // Theme preference
+//   organizationId String?        @db.ObjectId
+//   organization   Organization?  @relation(fields: [organizationId], references: [id])
+//   conversations  Conversation[] @relation("UserConversations")
+//   createdAt      DateTime       @default(now())
+//   updatedAt      DateTime       @updatedAt
+
+//   // Link to User (BetterAuth)
+//   authUserId String?
+//   authUser   User?     @relation(fields: [authUserId], references: [id])
+// }
+
+// model Customer {
+//   id             String         @id @default(auto()) @map("_id") @db.ObjectId
+//   name           String
+//   email          String?
+//   organizationId String         @db.ObjectId
+//   organization   Organization   @relation(fields: [organizationId], references: [id])
+//   conversations  Conversation[]
+//   createdAt      DateTime       @default(now())
+//   updatedAt      DateTime       @updatedAt
+// }
+
+// model Conversation {
+//   id             String     @id @default(auto()) @map("_id") @db.ObjectId
+//   organizationId String     @db.ObjectId
+//   organization   Organization @relation(fields: [organizationId], references: [id])
+//   customerId     String     @db.ObjectId
+//   customer       Customer   @relation(fields: [customerId], references: [id])
+//   assignedToId   String?    @db.ObjectId
+//   assignedTo     AppUser?   @relation("UserConversations", fields: [assignedToId], references: [id])
+//   status         ConversationStatus @default(OPEN)
+//   messages       Message[]
+//   createdAt      DateTime   @default(now())
+//   updatedAt      DateTime   @updatedAt
+// }
+
+// model Message {
+//   id             String     @id @default(auto()) @map("_id") @db.ObjectId
+//   conversationId String     @db.ObjectId
+//   conversation   Conversation @relation(fields: [conversationId], references: [id])
+//   senderType     SenderType
+//   senderId       String?    @db.ObjectId
+//   content        String
+//   createdAt      DateTime   @default(now())
+// }
+
+// /* ---------- BetterAuth Models ---------- */
+// model User {
+//   id            String             @id @default(uuid()) @map("_id")
+//   email         String             @unique
+//   name          String?
+//   firstName     String?
+//   lastName      String?
+//   emailVerified Boolean            @default(false)
+//   image         String?
+//   createdAt     DateTime           @default(now())
+//   updatedAt     DateTime           @updatedAt
+//   role          String?
+//   banned        Boolean?
+//   banReason     String?
+//   banExpires    DateTime?
+//   phoneNumber   String?            @default("")
+//   phoneNumberVerified Boolean?
+//   isAnonymous   Boolean?
+//   username      String?
+//   displayUsername String?
+  
+//   // Relations
+//   accounts      Account[]
+//   sessions      Session[]
+//   appUsers      AppUser[]
+// }
+
+// model Account {
+//   id                    String    @id @default(uuid()) @map("_id")
+//   accountId             String
+//   providerId            String
+//   userId                String
+//   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   accessToken           String?
+//   refreshToken          String?
+//   idToken               String?
+//   accessTokenExpiresAt  DateTime?
+//   refreshTokenExpiresAt DateTime?
+//   scope                 String?
+//   password              String?
+//   createdAt             DateTime
+//   updatedAt             DateTime
+
+//   @@map("account")
+// }
+
+// model Session {
+//   id                   String   @id @default(uuid()) @map("_id")
+//   expiresAt            DateTime
+//   token                String
+//   createdAt            DateTime
+//   updatedAt            DateTime
+//   ipAddress            String?
+//   userAgent            String?
+//   userId               String
+//   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   activeOrganizationId String?
+//   impersonatedBy       String?
+
+//   @@unique([token])
+//   @@map("session")
+// }
+
+// model Verification {
+//   id         String    @id @default(uuid()) @map("_id")
+//   identifier String
+//   value      String
+//   expiresAt  DateTime
+//   createdAt  DateTime?
+//   updatedAt  DateTime?
+
+//   @@map("verification")
+// }
+
+// model Jwks {
+//   id         String   @id @default(uuid()) @map("_id")
+//   publicKey  String
+//   privateKey String
+//   createdAt  DateTime
+
+//   @@map("jwks")
+// }
+
+// /* ---------- Enums ---------- */
+// enum UserRole {
+//   ADMIN
+//   AGENT
+// }
+
+// enum ConversationStatus {
+//   OPEN
+//   CLOSED
+// }
+
+// enum SenderType {
+//   USER
+//   CUSTOMER
+//   SYSTEM
+// }
