@@ -8,7 +8,13 @@ export default function AdminChatRoom() {
   const { room } = useParams();
   const [socket, setSocket] = useState<ReturnType<typeof io> | null>(null);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<{ message: string; sender?: string }[]>([]);
+  const [messages, setMessages] = useState<{ 
+    message: string; 
+    sender?: string; 
+    messageId?: string;
+    timestamp?: Date;
+    status?: 'sending' | 'sent' | 'error';
+  }[]>([]);
 
   useEffect(() => {
     console.log("Dashboard connecting to room:", room);
@@ -20,9 +26,37 @@ export default function AdminChatRoom() {
       s.emit("join-room", room);
     });
 
-    s.on("receive-message", (data: { message: string; sender?: string }) => {
+    s.on("receive-message", (data: { message: string; sender?: string; messageId?: string; timestamp?: Date }) => {
       console.log("Dashboard received message:", data);
-      setMessages((prev) => [...prev, { message: data.message, sender: data.sender }]);
+      setMessages((prev) => [...prev, { 
+        message: data.message, 
+        sender: data.sender, 
+        messageId: data.messageId,
+        timestamp: data.timestamp,
+        status: 'sent'
+      }]);
+    });
+
+    s.on("message-sent", (data: { messageId: string; status: string }) => {
+      console.log("Message sent confirmation:", data);
+      setMessages((prev) => 
+        prev.map(msg => 
+          msg.messageId === data.messageId 
+            ? { ...msg, status: 'sent' as const }
+            : msg
+        )
+      );
+    });
+
+    s.on("message-error", (data: { error: string }) => {
+      console.error("Message error:", data);
+      setMessages((prev) => 
+        prev.map(msg => 
+          msg.status === 'sending' 
+            ? { ...msg, status: 'error' as const }
+            : msg
+        )
+      );
     });
 
     s.on("disconnect", () => {
@@ -37,8 +71,23 @@ export default function AdminChatRoom() {
   const send = () => {
     if (!socket || !message) return;
     console.log("Dashboard sending message:", { room, message, sender: "admin" });
-    socket.emit("send-message", { room, message, sender: "admin" });
-    setMessages((prev) => [...prev, { message, sender: "admin" }]);
+    
+    // Add message to UI immediately with sending status
+    const tempMessage = { 
+      message, 
+      sender: "admin" as const, 
+      status: 'sending' as const,
+      timestamp: new Date()
+    };
+    setMessages((prev) => [...prev, tempMessage]);
+    
+    // Send to server
+    socket.emit("send-message", { 
+      room, 
+      message, 
+      sender: "admin",
+      conversationId: room 
+    });
     setMessage("");
   };
 
@@ -47,8 +96,34 @@ export default function AdminChatRoom() {
       <h2>Room: {room}</h2>
       <div style={{ height: "60vh", overflowY: "auto", border: "1px solid #ccc", padding: 8 }}>
         {(messages).map((m, idx) => (
-          <div key={idx} style={{ textAlign: m.sender === "admin" ? "right" : "left", margin: 4 }}>
-            <span>{m.message}</span>
+          <div key={idx} style={{ 
+            textAlign: m.sender === "admin" ? "right" : "left", 
+            margin: 4,
+            position: 'relative'
+          }}>
+            <div style={{
+              display: 'inline-block',
+              maxWidth: '80%',
+              padding: '8px 12px',
+              borderRadius: '12px',
+              backgroundColor: m.sender === "admin" ? '#3b82f6' : '#f3f4f6',
+              color: m.sender === "admin" ? 'white' : 'black',
+              position: 'relative'
+            }}>
+              <span>{m.message}</span>
+              {m.sender === "admin" && (
+                <div style={{
+                  fontSize: '10px',
+                  opacity: 0.7,
+                  marginTop: '4px',
+                  textAlign: 'right'
+                }}>
+                  {m.status === 'sending' && '⏳ Sending...'}
+                  {m.status === 'sent' && '✓ Sent'}
+                  {m.status === 'error' && '❌ Failed'}
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>

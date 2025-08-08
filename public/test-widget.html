@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBox Widget Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #374151;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .feature {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+        .feature h3 {
+            color: #374151;
+            margin-top: 0;
+        }
+        .feature p {
+            color: #6b7280;
+            margin-bottom: 0;
+        }
+        .demo-section {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .demo-section p {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s ease;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ChatBox Widget Demo</h1>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>💬 Smart Button</h3>
+                <p>Starts as a floating chat button that expands into a full chat interface when clicked.</p>
+            </div>
+            <div class="feature">
+                <h3>🔔 Notifications</h3>
+                <p>Shows notification badges when new messages arrive while the chat is closed.</p>
+            </div>
+            <div class="feature">
+                <h3>🎨 Modern Design</h3>
+                <p>Clean, modern interface with smooth animations and responsive design.</p>
+            </div>
+            <div class="feature">
+                <h3>⚡ Real-time</h3>
+                <p>Real-time messaging powered by Socket.IO with message status indicators.</p>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <p>Look for the chat button in the bottom-right corner of this page!</p>
+            <button class="btn" onclick="scrollToBottom()">Scroll to Bottom</button>
+        </div>
+        
+        <div style="height: 1000px; background: linear-gradient(45deg, #f0f9ff 25%, transparent 25%), linear-gradient(-45deg, #f0f9ff 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f9ff 75%), linear-gradient(-45deg, transparent 75%, #f0f9ff 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; margin-top: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+            <p style="color: #6b7280; font-size: 18px;">Scroll down to see the widget in action!</p>
+        </div>
+    </div>
+
+    <!-- ChatBox Widget -->
+    <script src="/widget.js" data-base="http://localhost:3000" data-room="demo-room"></script>
+    
+    <script>
+        function scrollToBottom() {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>
