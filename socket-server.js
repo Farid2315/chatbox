@@ -1,6 +1,6 @@
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const { PrismaClient } = require('@prisma/client');
+import { createServer } from 'node:http';
+import { Server } from 'socket.io';
+import { PrismaClient } from '@prisma/client';
 
 const httpServer = createServer();
 const prisma = new PrismaClient();
