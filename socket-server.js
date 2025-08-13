@@ -1,9 +1,17 @@
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
 import { PrismaClient } from '@prisma/client';
+import fetch from 'node-fetch';
 
 const httpServer = createServer();
 const prisma = new PrismaClient();
+
+// Helper function to generate MongoDB ObjectID
+function generateObjectId() {
+  return Math.random().toString(16).substring(2, 10) + 
+         Math.random().toString(16).substring(2, 10) + 
+         Math.random().toString(16).substring(2, 10);
+}
 
 const io = new Server(httpServer, {
   cors: {
@@ -17,36 +25,120 @@ io.on("connection", (socket) => {
   
   socket.on("send-message", async (data) => {
     console.log("Message received:", data);
-    const { room, message, sender, conversationId } = data;
+    const { room, message, sender, conversationId, customerEmail, customerName } = data;
     
     try {
-      // Save message to database
-      const savedMessage = await prisma.message.create({
-        data: {
-          conversationId: conversationId || room,
-          senderType: sender === 'admin' ? 'USER' : 'CUSTOMER',
-          content: message,
-        },
-      });
-      
-      console.log("Message saved to database:", savedMessage.id);
+      let savedMessage;
+      let conversationId_final;
+      let customerId;
+      let organizationId;
+      let isAuthenticated = false;
+
+      if (sender === 'customer') {
+        // Handle customer message through widget API
+        try {
+          console.log("Attempting to call widget API...");
+          const response = await fetch('http://localhost:3002/api/widget/message', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cookie': socket.handshake.headers.cookie || ''
+            },
+            body: JSON.stringify({
+              message,
+              roomId: room,
+              customerEmail,
+              customerName
+            })
+          });
+
+          console.log("Widget API response status:", response.status);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Widget API error response:", errorText);
+            throw new Error(`Widget API error: ${response.status} - ${errorText}`);
+          }
+
+          const result = await response.json();
+          console.log("Widget API success result:", result);
+          
+          savedMessage = result.message;
+          conversationId_final = result.conversationId;
+          customerId = result.customerId;
+          organizationId = result.organizationId;
+          isAuthenticated = result.isAuthenticated;
+
+          console.log("Widget message processed:", {
+            messageId: savedMessage.id,
+            conversationId: conversationId_final,
+            customerId,
+            organizationId,
+            isAuthenticated
+          });
+
+        } catch (apiError) {
+          console.error("Widget API error:", apiError);
+          console.log("Falling back to direct database save...");
+          
+          // Fallback to direct database save with proper ObjectID
+          const fallbackConversationId = generateObjectId();
+          savedMessage = await prisma.message.create({
+            data: {
+              conversationId: fallbackConversationId,
+              senderType: 'CUSTOMER',
+              content: message,
+            },
+          });
+          conversationId_final = fallbackConversationId;
+          console.log("Fallback message saved:", savedMessage.id);
+        }
+
+      } else {
+        // Handle admin message (existing logic)
+        console.log("Processing admin message...");
+        
+        // Generate proper ObjectID for conversation
+        const adminConversationId = generateObjectId();
+        
+        savedMessage = await prisma.message.create({
+          data: {
+            conversationId: adminConversationId,
+            senderType: sender === 'admin' ? 'USER' : 'CUSTOMER',
+            content: message,
+          },
+        });
+        conversationId_final = adminConversationId;
+        console.log("Admin message saved:", savedMessage.id);
+      }
       
       // Broadcast to room with message ID
+      console.log("Broadcasting message to room:", room);
       io.to(room).emit("receive-message", { 
         message, 
         sender, 
         messageId: savedMessage.id,
-        timestamp: savedMessage.createdAt 
+        timestamp: savedMessage.createdAt,
+        conversationId: conversationId_final,
+        customerId,
+        organizationId,
+        isAuthenticated
       });
       
       // Emit message sent confirmation
       socket.emit("message-sent", { 
         messageId: savedMessage.id,
-        status: 'sent'
+        status: 'sent',
+        conversationId: conversationId_final
       });
       
     } catch (error) {
       console.error("Error saving message:", error);
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        data: { room, message, sender, conversationId, customerEmail, customerName }
+      });
       socket.emit("message-error", { error: "Failed to save message" });
     }
   });
